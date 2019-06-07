@@ -10,8 +10,12 @@ public class BallGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Player player = FindObjectOfType<Player>();
+
         onGain.Subscribe(num => {
-            Instantiate(prefab).transform.parent = transform;
+            Ball ball = Instantiate(prefab);
+            ball.transform.parent = transform;
+            ball.strongth = player.strongth;
         });
     }
 }

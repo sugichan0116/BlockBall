@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UniRx;
 using DG.Tweening;
-using System;
 
 public class Ball : MonoBehaviour
 {
@@ -13,14 +12,16 @@ public class Ball : MonoBehaviour
     }
 
     public State state = State.IDLE;
-    Player player;
-    Vector3 offset = new Vector3(0, .2f, 0);
-    Rigidbody2D rb;
+    public int strongth = 1;
+
+    private Gun gun;
+    private Vector3 offset = new Vector3(0, .2f, 0);
+    private Rigidbody2D rb;
 
     // Start is called before the first frame update
     void Awake()
     {
-        player = FindObjectOfType<Player>();
+        gun = FindObjectOfType<Gun>();
         rb = GetComponent<Rigidbody2D>();
 
         //発射
@@ -30,23 +31,25 @@ public class Ball : MonoBehaviour
             .Subscribe(_ => {
                 state = State.ACTIVE;
                 Launch();
-            });
-        
+            })
+            .AddTo(gameObject);
+
         //初期位置へ
         Observable
             .EveryUpdate()
             .Where(_ => state != State.ACTIVE)
             .Subscribe(_ => {
-                if (player == null) return;
-                Vector3 target = player.transform.position + offset;
+                if (gun == null) return;
+                Vector3 target = gun.transform.position + offset;
                 transform.DOMove(target, .3f);
-            });
+            })
+            .AddTo(gameObject);
     }
 
     private void Launch()
     {
-        rb.position = player.transform.position;
+        rb.position = gun.transform.position;
         rb.velocity = Vector3.zero;
-        rb.AddForce(player.LauncherForce(), ForceMode2D.Impulse);
+        rb.AddForce(gun.LauncherForce(), ForceMode2D.Impulse);
     }
 }
