@@ -2,7 +2,6 @@
 using UniRx;
 using System.Linq;
 using System;
-using DG.Tweening;
 using Random = UnityEngine.Random;
 
 public class Gun : MonoBehaviour
@@ -30,15 +29,8 @@ public class Gun : MonoBehaviour
             .Subscribe(_ => {
                 state = State.ACTIVE;
 
-                foreach (var wall in FindObjectsOfType<Wall>())
-                {
-                    wall.transform
-                        .DOMove(Vector2.down, .3f)
-                        .SetRelative();
-                }
-
                 GetComponent<Player>()
-                    .onWallMove.OnNext(Unit.Default);
+                    .onWallMove.OnNext(1);
             })
             .AddTo(gameObject);
 

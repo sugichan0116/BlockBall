@@ -9,7 +9,7 @@ public class Player : MonoBehaviour
     public int strongth = 1;
 
     public Subject<int> onCollided = new Subject<int>();
-    public Subject<Unit> onWallMove = new Subject<Unit>();
+    public Subject<int> onWallMove = new Subject<int>();
     public Subject<Unit> onFire = new Subject<Unit>();
     public Subject<Unit> onWallClear = new Subject<Unit>();
     public Subject<int> onPowerUp = new Subject<int>();
@@ -19,23 +19,29 @@ public class Player : MonoBehaviour
     {
         onPowerUp
             .Subscribe(s => {
-                Debug.Log(s + "/?" + strongth);
                 strongth += s;
-                foreach(var ball in FindObjectsOfType<Ball>())
+                foreach (var ball in FindObjectsOfType<Ball>())
                 {
                     ball.strongth += s;
                 }
             });
 
         onWallMove
-            .Subscribe(_ => {
-                FindObjectOfType<WallGenerator>()
-                    .onFired
-                    .OnNext(++level);
+            .DelayFrame(1)
+            .Subscribe(shift => {
+
+                foreach (var i in Enumerable.Range(0, shift))
+                {
+                    FindObjectOfType<WallGenerator>()
+                        .onFired
+                        .OnNext(level);
+                }
             });
 
         onWallMove
+            .ThrottleFirst(System.TimeSpan.FromSeconds(.3f))
             .Subscribe(_ => {
+                level += 1;
                 voltage -= .2f;
             });
 
@@ -60,7 +66,12 @@ public class Player : MonoBehaviour
                     .onChanged
                     .OnNext(level * 1000);
             });
-        
+
+        //全消し
+        onWallClear
+            .Where(_ => level > 0)
+            .Subscribe(_ => onWallMove.OnNext(2));
+
         //clamp
         Observable
             .EveryLateUpdate()
